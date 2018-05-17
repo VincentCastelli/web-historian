@@ -27,24 +27,20 @@ exports.initialize = function(pathsObj) {
 // modularize your code. Keep it clean!
 
 exports.readListOfUrls = function(callback) {
-  
   fs.readFile(exports.paths.list, (err, data) => {
     var listArray = data.toString().split('\n');
     callback(listArray);
   });
-  
 };
 
 exports.isUrlInList = function(url, callback) {
-  
   fs.readFile(exports.paths.list, (err, data) => {
     callback(_.contains(data.toString().split('\n'), url));
   });
 };
 
 exports.addUrlToList = function(url, callback) {
-    
-  fs.appendFile(exports.paths.list, '\n' + url, (err) => {
+  fs.appendFile(exports.paths.list, url + '\n', (err) => {
     if (err) {
       throw err;
     }
@@ -53,17 +49,14 @@ exports.addUrlToList = function(url, callback) {
 };
 
 exports.isUrlArchived = function(url, callback) { 
-
   fs.readdir(exports.paths.archivedSites, (err, files) => {
     callback (_.some(files, file => file === url ));
   });
 };
 
 exports.downloadUrls = function(urls) {
-  
   urls.forEach(url => {
     http.get('http://' + url, (res) => {
-      
       var str = '';
       res.on('data', (chunk) => {
         str += chunk;
@@ -74,10 +67,9 @@ exports.downloadUrls = function(urls) {
           }
         });
       });
+      
+      // error handling if url not found:
+      
     });
   });
-  
-  
-  
-  
 };

@@ -46,13 +46,51 @@ exports.handleRequest = function (req, res) {
     req.on('data', (chunk) => {
       str += chunk;
     }).on('end', () => {
-      var strArr = str.split('=');
-      console.log('string[1]', strArr[1]);
-      archive.isUrlArchived(strArr[1], function (data) {
-        statusCode = 302;
-        res.writeHead(statusCode, headersCor.headers);
-        res.write(data);
-        res.end();
+      var url = str.split('=')[1];
+      console.log('incoming url: ', url);
+      archive.isUrlInList(url, (exists) => {
+        if (exists) {
+          archive.isUrlArchived(url, (exists) => {
+            if (exists) {
+              fs.readFile(archive.paths.archivedSites + '/' + url, (err, data) => {
+                console.log('Url is in archive: ', url);
+                statusCode = 302;
+                res.writeHead(statusCode, headersCor.headers);
+                res.write(data);
+                res.end();
+              });
+            } else {
+              fs.readFile(archive.paths.siteAssets + '/loading.html', (err, data) => {
+                statusCode = 302;
+                res.writeHead(statusCode, headersCor.headers);
+                res.write(data);
+                res.end();
+              });
+            }
+          });     
+        } else {
+          // add to the list
+          archive.addUrlToList(url, () => {
+            archive.isUrlArchived(url, (exists) => {
+              if (exists) {
+                fs.readFile(archive.paths.archivedSites + '/' + url, (err, data) => {
+                  console.log('Url is in archive: ', url);
+                  statusCode = 302;
+                  res.writeHead(statusCode, headersCor.headers);
+                  res.write(data);
+                  res.end();
+                });
+              } else {
+                fs.readFile(archive.paths.siteAssets + '/loading.html', (err, data) => {
+                  statusCode = 302;
+                  res.writeHead(statusCode, headersCor.headers);
+                  res.write(data);
+                  res.end();
+                });
+              }
+            });
+          });
+        }
       });
     });
   }
