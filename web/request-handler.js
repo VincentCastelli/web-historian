@@ -22,7 +22,7 @@ exports.handleRequest = function (req, res) {
           res.write(data);
           res.end();
         }
-    }) 
+      });
     } else {
       fs.readFile(archive.paths.archivedSites + req.url, (err, data) => {
         if (err) {
@@ -35,15 +35,25 @@ exports.handleRequest = function (req, res) {
           res.write(data);
           res.end();
         }
-      })
+      });
     }  
   }
   
   // Post
   
   if (req.method === 'POST') {
-    statusCode = 302;
-    res.writeHead(statusCode, headersCor.headers);
+    let str = '';
+    req.on('data', (chunk) => {
+      str += chunk;
+    }).on('end', () => {
+      var strArr = str.split('=');
+      console.log('string[1]', strArr[1]);
+      archive.isUrlArchived(strArr[1], function (data) {
+        statusCode = 302;
+        res.writeHead(statusCode, headersCor.headers);
+        res.write(data);
+        res.end();
+      });
+    });
   }
-  
 };

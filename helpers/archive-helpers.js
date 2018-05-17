@@ -27,24 +27,29 @@ exports.initialize = function(pathsObj) {
 
 exports.readListOfUrls = function(callback) {
   
+  fs.readFile(exports.paths.list, (err, data) => {
+    var listArray = data.toString().split('\n');
+    callback(listArray);
+  });
+  
 };
 
 exports.isUrlInList = function(url, callback) {
   // if url !== url on sites.txt
-    // addUrlToList(url, readListOfUrls)
+  // addUrlToList(url, readListOfUrls)
     
     
   
-  fs.readFile(paths.list, (err, data) => {
+  fs.readFile(exports.paths.list, (err, data) => {
     //if url is in list
-    if(_.contains(data.toString().split('\n'), url)) {
-      fs.readFile(paths.siteAssets + '/loading.html', (err, data) => {
-        res.write(data);
-        res.end();
+    console.log('data to string', data.toString());
+    if (_.contains(data.toString().split('\n'), url)) {
+      fs.readFile(exports.paths.siteAssets + '/loading.html', (err, data) => {
+        callback(data);
       });
     // if url is not in list, add to list
     } else {
-      addUrlToList(url, callback); //ADD CALLBACK
+      exports.addUrlToList(url, callback); //ADD CALLBACK
     }
     
   });
@@ -57,37 +62,42 @@ exports.addUrlToList = function(url, callback) {
   // convert array back to text
   // write to list
   // render loading page
-  fs.readFile(paths.list, (err, data) => {
-    var listArray = data.toString().split('\n');
-    listArray.push(url);
-    var listString = listArray.join('\n');
+  // fs.readFile(exports.paths.list, (err, data) => {
+  //   console.log('data to string', data.toString());
+  //   var newListString = data.toString();
+  //   // var listArray = data.toString().split('\n');
+  //   // listArray.push(url);
+  //   // var listString = listArray.join('\n');
     
-    fs.writeFile(paths.list, listString, (err) => {
-      if (err) throw err;
-      console.log('The file has been saved!');
-    });
-
-    fs.readFile(paths.siteAssets + '/loading.html', (err, data) => {
-        res.write(data);
-        res.end();
-    });
+  fs.appendFile(exports.paths.list, '\n' + url, (err) => {
+    if (err) {
+      throw err;
+    }
+    console.log('The file has been saved!');
   });
+
+  fs.readFile(exports.paths.siteAssets + '/loading.html', 
+    (err, data) => callback(data));
 };
 
 exports.isUrlArchived = function(url, callback) { 
   // if url !== file in archivedSites
-  fs.readdir(paths.archivedSites, (err, files) => {
+  fs.readdir(exports.paths.archivedSites, (err, files) => {
+    console.log('exports.paths.archivedSites', exports.paths.archivedSites);
+    console.log('this.paths.archivedSites', this.paths.archivedSites);
     // if url in archive
-    if (_.some(files, file => file === url)) {
-      fs.readFile(paths.archivedSites + url, (err, data) => {
-        res.write(data);
-        res.end();
+    if (_.some(files, file => {
+        console.log('file', file, '   url: ', url);
+        return file === url;
+      })) {
+      fs.readFile(exports.paths.archivedSites + '/' + url, (err, data) => {
+        callback(data);
       });
     // if url not in archive
     } else {
-      isUrlInList(url, callback); //ADD CALLBACK
+      exports.isUrlInList(url, callback); //ADD CALLBACK
     }
-  }
+  });
 };
 
 exports.downloadUrls = function(urls) {
