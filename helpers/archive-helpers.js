@@ -1,6 +1,7 @@
 var fs = require('fs');
 var path = require('path');
 var _ = require('underscore');
+var http = require('http');
 
 /*
  * You will need to reuse the same paths many times over in the course of this sprint.
@@ -35,70 +36,48 @@ exports.readListOfUrls = function(callback) {
 };
 
 exports.isUrlInList = function(url, callback) {
-  // if url !== url on sites.txt
-  // addUrlToList(url, readListOfUrls)
-    
-    
   
   fs.readFile(exports.paths.list, (err, data) => {
-    //if url is in list
-    console.log('data to string', data.toString());
-    if (_.contains(data.toString().split('\n'), url)) {
-      fs.readFile(exports.paths.siteAssets + '/loading.html', (err, data) => {
-        callback(data);
-      });
-    // if url is not in list, add to list
-    } else {
-      exports.addUrlToList(url, callback); //ADD CALLBACK
-    }
-    
+    callback(_.contains(data.toString().split('\n'), url));
   });
 };
 
 exports.addUrlToList = function(url, callback) {
-  // get file
-  // convert to array
-  // push url to array
-  // convert array back to text
-  // write to list
-  // render loading page
-  // fs.readFile(exports.paths.list, (err, data) => {
-  //   console.log('data to string', data.toString());
-  //   var newListString = data.toString();
-  //   // var listArray = data.toString().split('\n');
-  //   // listArray.push(url);
-  //   // var listString = listArray.join('\n');
     
   fs.appendFile(exports.paths.list, '\n' + url, (err) => {
     if (err) {
       throw err;
     }
-    console.log('The file has been saved!');
+    callback();
   });
-
-  fs.readFile(exports.paths.siteAssets + '/loading.html', 
-    (err, data) => callback(data));
 };
 
 exports.isUrlArchived = function(url, callback) { 
-  // if url !== file in archivedSites
+
   fs.readdir(exports.paths.archivedSites, (err, files) => {
-    console.log('exports.paths.archivedSites', exports.paths.archivedSites);
-    console.log('this.paths.archivedSites', this.paths.archivedSites);
-    // if url in archive
-    if (_.some(files, file => {
-        console.log('file', file, '   url: ', url);
-        return file === url;
-      })) {
-      fs.readFile(exports.paths.archivedSites + '/' + url, (err, data) => {
-        callback(data);
-      });
-    // if url not in archive
-    } else {
-      exports.isUrlInList(url, callback); //ADD CALLBACK
-    }
+    callback (_.some(files, file => file === url ));
   });
 };
 
 exports.downloadUrls = function(urls) {
+  
+  urls.forEach(url => {
+    http.get('http://' + url, (res) => {
+      
+      var str = '';
+      res.on('data', (chunk) => {
+        str += chunk;
+      }).on('end', () => {
+        fs.writeFile(exports.paths.archivedSites + '/' + url, str, (err) => {
+          if (err) {
+            throw err;
+          }
+        });
+      });
+    });
+  });
+  
+  
+  
+  
 };
