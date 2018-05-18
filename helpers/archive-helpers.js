@@ -55,21 +55,24 @@ exports.isUrlArchived = function(url, callback) {
 };
 
 exports.downloadUrls = function(urls) {
+  console.log('downloading urls');
   urls.forEach(url => {
-    http.get('http://' + url, (res) => {
-      var str = '';
-      res.on('data', (chunk) => {
-        str += chunk;
-      }).on('end', () => {
-        fs.writeFile(exports.paths.archivedSites + '/' + url, str, (err) => {
-          if (err) {
-            throw err;
-          }
+    if (url) {
+      http.get('http://' + url, (res) => {
+        console.log(url);
+        var str = '';
+        res.on('data', (chunk) => {
+          str += chunk;
+        }).on('end', () => {
+          console.log(str);
+          fs.writeFile(exports.paths.archivedSites + '/' + url, str, (err) => {
+            if (err) {
+              throw err;
+            }
+          });
         });
-      });
-      
       // error handling if url not found:
-      
-    });
+      });
+    }
   });
 };

@@ -8,17 +8,20 @@ exports.handleRequest = function (req, res) {
   // Get
   var statusCode;
   if (req.method === 'GET') {
- 
+    console.log('-------->', req.url);
     // if url is '/'
-    if (req.url === '/') {
-      fs.readFile(archive.paths.siteAssets + '/index.html', (err, data) => {
+    if (req.url === '/' || req.url === '/styles.css') {
+      var suffix = req.url === '/' ? '/index.html' : '/styles.css';
+      var contentType = req.url === '/' ? 'text/html' : 'text/css';
+      
+      fs.readFile(archive.paths.siteAssets + suffix, (err, data) => {
         if (err) {
           statusCode = 404;
-          res.writeHead(statusCode, headersCor.headers);
+          res.writeHead(statusCode, { 'Content-Type': contentType });
           res.end();
         } else {
           statusCode = 200;
-          res.writeHead(statusCode, headersCor.headers);
+          res.writeHead(statusCode, { 'Content-Type': contentType });
           res.write(data);
           res.end();
         }
@@ -27,11 +30,11 @@ exports.handleRequest = function (req, res) {
       fs.readFile(archive.paths.archivedSites + req.url, (err, data) => {
         if (err) {
           statusCode = 404;
-          res.writeHead(statusCode, headersCor.headers);
+          res.writeHead(statusCode, { 'Content-Type': contentType });
           res.end();
         } else {
           statusCode = 200;
-          res.writeHead(statusCode, headersCor.headers);
+          res.writeHead(statusCode, { 'Content-Type': contentType });
           res.write(data);
           res.end();
         }
